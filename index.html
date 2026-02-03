@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optical Lab - Complete Projector Suite</title>
+    <title>Optical Lab - Final Projector Suite</title>
     <style>
         :root {
             --bg: #f8fafc; --panel: #ffffff; --text: #0f172a; --ray-col: #fbbf24; --accent: #0284c7;
@@ -195,6 +195,12 @@
         container.appendChild(r);
     }
 
+    function hexToRgb(hex) {
+        if (!hex || hex === 'none') return "251, 191, 36";
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "251, 191, 36";
+    }
+
     function updateSim() {
         const val = document.getElementById('mat-select').value;
         const pwr = document.getElementById('intensity-slider').value / 100;
@@ -225,15 +231,28 @@
         document.getElementById('shadow-zone').style.transform = `rotate(${angle}deg)`;
         document.getElementById('shadow-zone').style.background = `linear-gradient(90deg, rgba(0,0,0,${(1 - d.p) * pwr * 0.85}), transparent)`;
 
+        const rgbStr = hexToRgb(d.f);
+
         for(let i = 0; i < 7; i++) {
             const ray = document.getElementById(`r${i}`);
             ray.style.opacity = pwr;
+            
             if (d.p === 0) {
                 ray.style.width = d2b + "px";
                 ray.style.background = "#fbbf24";
+                ray.style.boxShadow = "0 0 10px #fbbf24";
             } else {
                 ray.style.width = "1200px";
-                ray.style.background = `linear-gradient(90deg, #fbbf24 ${d2b}px, ${d.f} ${d2b}px)`;
+                // If the material is translucent (p < 0.8), make the ray dimmer (opacity d.p) after the block
+                const afterOpacity = d.p < 0.8 ? d.p : 1;
+                ray.style.background = `linear-gradient(90deg, rgba(251, 191, 36, 1) ${d2b}px, rgba(${rgbStr}, ${afterOpacity}) ${d2b}px)`;
+                
+                // Dim the glow for translucent materials
+                if (d.p < 0.8) {
+                    ray.style.boxShadow = `0 0 ${5 * d.p}px rgba(${rgbStr}, 0.5)`;
+                } else {
+                    ray.style.boxShadow = `0 0 10px rgba(${rgbStr}, 0.8)`;
+                }
             }
         }
     }
@@ -249,4 +268,5 @@
     }
 </script>
 </body>
-</html>
+    </html>
+    
